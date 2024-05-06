@@ -1,4 +1,4 @@
-// import { bcrypt } from "bcrypt";
+import bcrypt from "bcrypt";
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db } from "../db";
@@ -11,9 +11,6 @@ export const authRoutes = new Hono()
   })
   .post("/auth", async (c) => {
     const body = await c.req.json();
-    // const habits = {
-    //   hehe: "hehehe",
-    // };
 
     const user = await db
       .select({
@@ -21,21 +18,21 @@ export const authRoutes = new Hono()
         email: userTable.email,
         password: userTable.password,
       })
-      .from(userTable);
+      .from(userTable)
+      .where(eq(userTable.email, body.email));
 
-    // bcrypt.compare(myPlaintextPassword, hash, function (err, result) {
-    //   // result == true
-    // });
-    const bcryptHash = await Bun.password.hash(body.password, {
-      algorithm: "bcrypt",
-      cost: 10,
-    });
-
-    const isMatch = await Bun.password.verify(body.password, bcryptHash);
-
-    console.log(body.password);
-    console.log(user[0].password);
-    console.log(isMatch);
-
-    return c.json({ status: 200, data: body });
+    if (user.length !== 0) {
+      bcrypt.compare(body.password, user[0].password, function (err, result) {
+        if (result === true) {
+          console.log("hehe");
+          return c.json({ status: 200, data: user });
+        } else {
+          return c.json({ status: 500, data: "password is incorrect!" });
+        }
+      });
+    } else {
+      console.log("email is not found!");
+      return c.json({ status: 500, data: "email is not found!" });
+    }
+    // return c.json({ status: 200, data: user });
   });
