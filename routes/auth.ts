@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db } from "../db";
-import { users as userTable } from "../db/schema";
+import { usersTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 export const authRoutes = new Hono()
@@ -17,12 +17,12 @@ export const authRoutes = new Hono()
 
     const user = await db
       .select({
-        id: userTable.id,
-        email: userTable.email,
-        password: userTable.password,
+        id: usersTable.id,
+        email: usersTable.email,
+        password: usersTable.password,
       })
-      .from(userTable)
-      .where(eq(userTable.email, body.email));
+      .from(usersTable)
+      .where(eq(usersTable.email, body.email));
 
     if (user.length !== 0) {
       bcrypt.compare(body.password, user[0].password, function (err, result) {

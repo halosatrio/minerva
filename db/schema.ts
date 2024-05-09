@@ -14,7 +14,7 @@ import {
 
 export const mySchema = pgSchema("minerva");
 
-export const users = mySchema.table("users", {
+export const usersTable = mySchema.table("users", {
   id: serial("id").primaryKey(),
   email: text("email").unique().notNull(),
   password: text("password").notNull(),
@@ -22,11 +22,11 @@ export const users = mySchema.table("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const habits = mySchema.table(
+export const habitsTable = mySchema.table(
   "habits",
   {
     id: serial("id").primaryKey(),
-    userId: integer("user_id").references(() => users.id, {
+    userId: integer("user_id").references(() => usersTable.id, {
       onDelete: "cascade",
     }),
     title: varchar("title", { length: 256 }).notNull(),
@@ -46,11 +46,11 @@ export const habits = mySchema.table(
   }
 );
 
-export const tracker = mySchema.table(
+export const trackerTable = mySchema.table(
   "tracker",
   {
     date: date("date").notNull(),
-    habitId: integer("habit_id").references(() => habits.id, {
+    habitId: integer("habit_id").references(() => habitsTable.id, {
       onDelete: "cascade",
     }),
     count: smallint("count").notNull(),
