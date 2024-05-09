@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 
 import { db } from "../db";
-import { habits as habitSchema } from "../db/schema/minerva";
+import { habits as habitSchema } from "../db/schema";
 
 // import { createExpenseSchema } from "../sharedTypes";
 

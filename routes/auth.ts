@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db } from "../db";
-import { users as userTable } from "../db/schema/minerva";
+import { users as userTable } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 export const authRoutes = new Hono()
@@ -11,6 +11,9 @@ export const authRoutes = new Hono()
   })
   .post("/auth", async (c) => {
     const body = await c.req.json();
+
+    // TODO
+    // validate body email is email
 
     const user = await db
       .select({
