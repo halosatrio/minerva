@@ -10,6 +10,7 @@ export const authRoutes = new Hono()
   .post(
     "/register",
     zValidator("json", actionUserSchema, (result, c) => {
+      console.log("midle", result);
       if (!result.success) {
         return c.json({
           status: 400,
@@ -24,26 +25,21 @@ export const authRoutes = new Hono()
 
       const validatedUser = actionUserSchema.parse(body);
 
-      bcrypt.hash(validatedUser.password, 10, async function (err, hash) {
-        if (!err) {
-          console.log("FUKEN HERE", err, hash);
-          let result = await db
-            .insert(usersTable)
-            .values({ email: validatedUser.email, password: hash })
-            .returning()
-            .then((res) => res[0]);
+      const bcryptHash = await Bun.password.hash(validatedUser.password, {
+        algorithm: "bcrypt",
+        cost: 10,
+      });
 
-          return c.json({
-            status: 200,
-            message: "success register user!",
-            data: result,
-          });
-        } else {
-          return c.json({
-            status: 500,
-            message: "Failed register user! [Errors]: failed hased password!",
-          });
-        }
+      let res = await db
+        .insert(usersTable)
+        .values({ email: validatedUser.email, password: bcryptHash })
+        .returning()
+        .then((res) => res[0]);
+
+      return c.json({
+        status: 200,
+        message: "success register user!",
+        data: res,
       });
     }
   )
@@ -74,25 +70,19 @@ export const authRoutes = new Hono()
         .from(usersTable)
         .where(eq(usersTable.email, validatedUser.email));
 
-      console.log(user);
-
       if (user.length !== 0) {
-        bcrypt.compare(
+        const isMatch = await Bun.password.verify(
           validatedUser.password,
-          user[0].password,
-          function (err, result) {
-            if (result === true) {
-              console.log("hehe");
-              return c.json({ status: 200, data: user });
-            } else {
-              return c.json({ status: 500, data: "password is incorrect!" });
-            }
-          }
+          user[0].password
         );
+
+        if (isMatch) {
+          return c.json({ status: 200, data: user });
+        } else {
+          return c.json({ status: 500, data: "password is incorrect!" });
+        }
       } else {
-        console.log("email is not found!");
         return c.json({ status: 500, data: "email is not found!" });
       }
-      // return c.json({ status: 200, data: user });
     }
   );
