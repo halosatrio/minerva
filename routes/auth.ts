@@ -75,7 +75,7 @@ export const authRoutes = new Hono()
         // GENERATE JWT (token)
         const secret = process.env.SECRET_KEY;
         const tokenPayload = {
-          sub: body.id,
+          sub: user[0].id,
           email: body.email,
           exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // Token expires in 24 hours
         };
