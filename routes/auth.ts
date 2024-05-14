@@ -10,7 +10,6 @@ export const authRoutes = new Hono()
   .post(
     "/register",
     zValidator("json", actionUserSchema, (result, c) => {
-      console.log("midle", result);
       if (!result.success) {
         return c.json({
           status: 400,
