@@ -82,3 +82,7 @@ export const habitRoutes = new Hono()
       return c.json({ status: 200, message: "Success!", data: habit[0] });
     }
   });
+
+// TODO:
+// handling jwt exceptions
+// -> no header bearer, header no token
