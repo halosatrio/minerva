@@ -6,6 +6,7 @@ import { habitsTable } from "../db/schema";
 import { zValidator } from "@hono/zod-validator";
 import { createHabitReqSchema } from "../db/actionSchema";
 import type { JwtPayloadType } from "../types/common";
+import { and, eq } from "drizzle-orm";
 
 const secret = process.env.SECRET_KEY;
 
@@ -49,11 +50,35 @@ export const habitRoutes = new Hono()
     }
   )
 
-  .get("/habits", async (c) => {
-    const habits = await db.select().from(habitsTable);
+  .get("/habits", jwt({ secret: secret! }), async (c) => {
+    const jwtPayload: JwtPayloadType = c.get("jwtPayload");
 
-    return c.json({ data: habits });
+    const habits = await db
+      .select()
+      .from(habitsTable)
+      .where(eq(habitsTable.user_id, jwtPayload.sub));
+
+    if (habits.length < 1) {
+      return c.json({ status: 200, message: "Success!", data: null });
+    } else {
+      return c.json({ status: 200, message: "Success!", data: habits });
+    }
   })
-  .get("/habit/:id", async (c) => {
-    return c.json({ habit: "hehehehehe" });
+
+  .get("/habit/:id{[0-9]+}", jwt({ secret: secret! }), async (c) => {
+    const jwtPayload: JwtPayloadType = c.get("jwtPayload");
+    const id = Number.parseInt(c.req.param("id"));
+
+    const habit = await db
+      .select()
+      .from(habitsTable)
+      .where(
+        and(eq(habitsTable.user_id, jwtPayload.sub), eq(habitsTable.id, id))
+      );
+
+    if (habit.length < 1) {
+      return c.json({ status: 200, message: "Success!", data: null });
+    } else {
+      return c.json({ status: 200, message: "Success!", data: habit[0] });
+    }
   });
