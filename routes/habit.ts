@@ -18,7 +18,7 @@ export const habitRoutes = new Hono()
         return c.json({
           status: 400,
           message: `Failed register user! [Errors]:${result.error.issues.map(
-            (item) => " " + item.message
+            (item) => " " + item.path[0] + ": " + item.message
           )}`,
         });
       }
@@ -30,13 +30,13 @@ export const habitRoutes = new Hono()
       let res = await db
         .insert(habitsTable)
         .values({
-          userId: jwtPayload.sub,
+          user_id: jwtPayload.sub,
           title: body.title,
           icon: body.icon,
           color: body.color,
-          startDate: body.startDate,
-          dailyGoal: body.dailyGoal,
-          weeklyGoal: body.weeklyGoal,
+          start_date: body.start_date,
+          daily_goal: body.daily_goal,
+          weekly_goal: body.weekly_goal,
         })
         .returning()
         .then((res) => res[0]);

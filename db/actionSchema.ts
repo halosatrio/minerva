@@ -14,7 +14,7 @@ export const createHabitReqSchema = createInsertSchema(habitsTable, {
   title: z.string(),
   icon: z.string(),
   color: z.string(),
-  startDate: z.string(),
-  dailyGoal: z.number(),
-  weeklyGoal: z.number(),
+  start_date: z.string(),
+  daily_goal: z.number(),
+  weekly_goal: z.number(),
 });
