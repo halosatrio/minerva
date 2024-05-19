@@ -1,30 +1,41 @@
-import type { Context, Next } from "hono";
-import { HTTPException } from "hono/http-exception";
 import { verify } from "hono/jwt";
+import type { JwtPayloadType } from "../types/common";
+import { createMiddleware } from "hono/factory";
 
-export async function jwtMiddleware(c: Context, next: Next): Promise<any> {
+export const jwtMiddleware = createMiddleware(async (c, next) => {
   try {
     const authHeader = c.req.header("authorization");
-    if (!authHeader)
-      throw new HTTPException(401, { message: "TOKEN_IS_UNDEFINED" });
+    if (!authHeader) {
+      return c.json({ status: 401, message: "Auth header is not found!" }, 401);
+    }
 
-    const token = authHeader.split(" ")[1];
-    if (!token) throw new HTTPException(401, { message: "TOKEN_IS_UNDEFINED" });
+    const tokenParts = authHeader.split(" ");
+    if (tokenParts.length !== 2 || tokenParts[0] !== "Bearer") {
+      return c.json(
+        { status: 401, message: "Invalid auth header format!" },
+        401
+      );
+    }
+
+    const token = tokenParts[1];
+    if (!token) {
+      return c.json({ status: 401, message: "Token is Undefined!" }, 401);
+    }
 
     const jwtSecret = process.env.SECRET_KEY;
-    const user = await verify(token, jwtSecret!);
-    c.set("user", user);
+    if (!jwtSecret)
+      return c.json(
+        {
+          status: 500,
+          message: "Internal server error: SECRET_KEY is not set",
+        },
+        500
+      );
+
+    const jwtPayload: JwtPayloadType = await verify(token, jwtSecret);
+    c.set("jwtPayload", jwtPayload);
     return next();
   } catch (error: any) {
-    if (error) {
-      throw new HTTPException(error?.status, {
-        message: error?.message,
-        cause: error,
-      });
-    }
-    throw new HTTPException(403, {
-      message: "REQUIRE_AUTH_TOKEN_ERROR",
-      cause: error,
-    });
+    return c.json({ status: 401, message: error.message }, 401);
   }
-}
+});

@@ -7,13 +7,12 @@ import { zValidator } from "@hono/zod-validator";
 import { createHabitReqSchema } from "../db/actionSchema";
 import type { JwtPayloadType } from "../types/common";
 import { and, eq } from "drizzle-orm";
-
-const secret = process.env.SECRET_KEY;
+import { jwtMiddleware } from "../middleware/jwt";
 
 export const habitRoutes = new Hono()
   .post(
     "/create-habit",
-    jwt({ secret: secret! }),
+    jwtMiddleware,
     zValidator("json", createHabitReqSchema, (result, c) => {
       if (!result.success) {
         return c.json({
@@ -50,7 +49,7 @@ export const habitRoutes = new Hono()
     }
   )
 
-  .get("/habits", jwt({ secret: secret! }), async (c) => {
+  .get("/habits", jwtMiddleware, async (c) => {
     const jwtPayload: JwtPayloadType = c.get("jwtPayload");
 
     const habits = await db
@@ -65,7 +64,7 @@ export const habitRoutes = new Hono()
     }
   })
 
-  .get("/habit/:id{[0-9]+}", jwt({ secret: secret! }), async (c) => {
+  .get("/habit/:id{[0-9]+}", jwtMiddleware, async (c) => {
     const jwtPayload: JwtPayloadType = c.get("jwtPayload");
     const id = Number.parseInt(c.req.param("id"));
 
@@ -82,7 +81,3 @@ export const habitRoutes = new Hono()
       return c.json({ status: 200, message: "Success!", data: habit[0] });
     }
   });
-
-// TODO:
-// handling jwt exceptions
-// -> no header bearer, header no token
