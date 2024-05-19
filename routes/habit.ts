@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { jwt } from "hono/jwt";
 
 import { db } from "../db";
 import { habitsTable } from "../db/schema";
