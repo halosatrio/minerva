@@ -8,6 +8,20 @@
       "when": 1715233520749,
       "tag": "0000_wealthy_doctor_doom",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1716218613824,
+      "tag": "0001_famous_giant_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1716220207435,
+      "tag": "0002_violet_quentin_quire",
+      "breakpoints": true
     }
   ]
 }

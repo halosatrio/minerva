@@ -18,8 +18,8 @@ export const usersTable = mySchema.table("users", {
   id: serial("id").primaryKey(),
   email: text("email").unique().notNull(),
   password: text("password").notNull(),
-  created_at: timestamp("created_at").defaultNow(),
-  updated_at: timestamp("updated_at").defaultNow(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const habitsTable = mySchema.table(
@@ -37,7 +37,7 @@ export const habitsTable = mySchema.table(
     daily_goal: integer("daily_goal").notNull(),
     weekly_goal: integer("weekly_goal").notNull(),
     created_at: timestamp("created_at").defaultNow().notNull(),
-    updated_at: timestamp("updated_at"),
+    updated_at: timestamp("updated_at").defaultNow().notNull(),
   },
   (habits) => {
     return {
