@@ -18,3 +18,12 @@ export const createHabitReqSchema = createInsertSchema(habitsTable, {
   daily_goal: z.number(),
   weekly_goal: z.number(),
 });
+
+export const updateHabitReqSchema = createInsertSchema(habitsTable, {
+  title: z.string(),
+  icon: z.string(),
+  color: z.string(),
+  start_date: z.string(),
+  daily_goal: z.number(),
+  weekly_goal: z.number(),
+});

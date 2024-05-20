@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { db } from "../db";
 import { habitsTable } from "../db/schema";
 import { zValidator } from "@hono/zod-validator";
-import { createHabitReqSchema } from "../db/actionSchema";
+import { createHabitReqSchema, updateHabitReqSchema } from "../db/actionSchema";
 import type { JwtPayloadType } from "../types/common";
 import { and, eq } from "drizzle-orm";
 import { jwtMiddleware } from "../middleware/jwt";
@@ -14,12 +14,15 @@ export const habitRoutes = new Hono()
     jwtMiddleware,
     zValidator("json", createHabitReqSchema, (result, c) => {
       if (!result.success) {
-        return c.json({
-          status: 400,
-          message: `Failed register user! [Errors]:${result.error.issues.map(
-            (item) => " " + item.path[0] + ": " + item.message
-          )}`,
-        });
+        return c.json(
+          {
+            status: 400,
+            message: `Failed register user! [Errors]:${result.error.issues.map(
+              (item) => " " + item.path[0] + ": " + item.message
+            )}`,
+          },
+          400
+        );
       }
     }),
     async (c) => {
@@ -79,4 +82,60 @@ export const habitRoutes = new Hono()
     } else {
       return c.json({ status: 200, message: "Success!", data: habit[0] });
     }
-  });
+  })
+  .put(
+    "/habit/:id{[0-9]+}",
+    jwtMiddleware,
+    zValidator("json", updateHabitReqSchema, (result, c) => {
+      if (!result.success) {
+        return c.json(
+          {
+            status: 400,
+            message: `Failed to update habit! [Errors]: ${result.error.issues
+              .map((item) => `${item.path[0]}: ${item.message}`)
+              .join(", ")}`,
+          },
+          400
+        );
+      }
+    }),
+    async (c) => {
+      const jwtPayload: JwtPayloadType = c.get("jwtPayload");
+      const id = Number.parseInt(c.req.param("id"));
+      const body = c.req.valid("json");
+
+      const existingHabit = await db
+        .select()
+        .from(habitsTable)
+        .where(
+          and(eq(habitsTable.user_id, jwtPayload.sub), eq(habitsTable.id, id))
+        );
+
+      if (existingHabit.length < 1) {
+        return c.json({ status: 404, message: "Habit not found!" });
+      }
+
+      const updatedHabit = await db
+        .update(habitsTable)
+        .set({
+          title: body.title,
+          icon: body.icon,
+          color: body.color,
+          start_date: body.start_date,
+          daily_goal: body.daily_goal,
+          weekly_goal: body.weekly_goal,
+          updated_at: new Date(),
+        })
+        .where(
+          and(eq(habitsTable.user_id, jwtPayload.sub), eq(habitsTable.id, id))
+        )
+        .returning()
+        .then((res) => res[0]);
+
+      return c.json({
+        status: 200,
+        message: "Success updating habit!",
+        data: updatedHabit,
+      });
+    }
+  );
