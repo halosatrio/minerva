@@ -11,12 +11,15 @@ export const authRoutes = new Hono()
     "/register",
     zValidator("json", actionUserSchema, (result, c) => {
       if (!result.success) {
-        return c.json({
-          status: 400,
-          message: `Failed register user! [Errors]:${result.error.issues.map(
-            (item) => " " + item.message
-          )}`,
-        });
+        return c.json(
+          {
+            status: 400,
+            message: `Failed register user! [Errors]:${result.error.issues.map(
+              (item) => " " + item.message
+            )}`,
+          },
+          400
+        );
       }
     }),
     async (c) => {
@@ -45,12 +48,15 @@ export const authRoutes = new Hono()
     "/auth",
     zValidator("json", actionUserSchema, (result, c) => {
       if (!result.success) {
-        return c.json({
-          status: 400,
-          message: `Login failed! [Errors]:${result.error.issues.map(
-            (item) => " " + item.message
-          )}`,
-        });
+        return c.json(
+          {
+            status: 400,
+            message: `Login failed! [Errors]:${result.error.issues.map(
+              (item) => " " + item.message
+            )}`,
+          },
+          400
+        );
       }
     }),
     async (c) => {
@@ -86,7 +92,7 @@ export const authRoutes = new Hono()
           return c.json({ status: 500, data: "password is incorrect!" });
         }
       } else {
-        return c.json({ status: 500, data: "email is not found!" });
+        return c.json({ status: 500, data: "email is not found!" }, 500);
       }
     }
   );

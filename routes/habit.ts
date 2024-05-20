@@ -112,7 +112,7 @@ export const habitRoutes = new Hono()
         );
 
       if (existingHabit.length < 1) {
-        return c.json({ status: 404, message: "Habit not found!" });
+        return c.json({ status: 404, message: "Habit not found!" }, 404);
       }
 
       const updatedHabit = await db
