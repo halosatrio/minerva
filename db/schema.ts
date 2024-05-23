@@ -49,6 +49,7 @@ export const habitsTable = mySchema.table(
 export const trackerTable = mySchema.table(
   "tracker",
   {
+    id: serial("id"),
     date: date("date").notNull(),
     habit_id: integer("habit_id")
       .notNull()
