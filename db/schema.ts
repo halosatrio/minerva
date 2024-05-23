@@ -50,11 +50,13 @@ export const trackerTable = mySchema.table(
   "tracker",
   {
     date: date("date").notNull(),
-    habit_id: integer("habit_id").references(() => habitsTable.id, {
-      onDelete: "cascade",
-    }),
+    habit_id: integer("habit_id")
+      .notNull()
+      .references(() => habitsTable.id, {
+        onDelete: "cascade",
+      }),
     count: smallint("count").notNull(),
-    updated_at: timestamp("updated_at"),
+    updated_at: timestamp("updated_at").notNull().defaultNow(),
   },
   (table) => {
     return {

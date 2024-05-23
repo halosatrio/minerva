@@ -1,6 +1,6 @@
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { habitsTable, usersTable } from "./schema";
+import { habitsTable, trackerTable, usersTable } from "./schema";
 
 // Schema for inserting a user - can be used to validate API requests
 export const actionUserSchema = createInsertSchema(usersTable, {
@@ -26,4 +26,9 @@ export const updateHabitReqSchema = createInsertSchema(habitsTable, {
   start_date: z.string(),
   daily_goal: z.number(),
   weekly_goal: z.number(),
+});
+
+export const postTrackerReqSchema = createInsertSchema(trackerTable, {
+  count: z.number(),
+  habit_id: z.number(),
 });
