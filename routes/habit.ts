@@ -9,6 +9,7 @@ import { and, eq } from "drizzle-orm";
 import { jwtMiddleware } from "../middleware/jwt";
 
 export const habitRoutes = new Hono()
+  // POST create-habit -> create habit by userid
   .post(
     "/create-habit",
     jwtMiddleware,
@@ -51,13 +52,19 @@ export const habitRoutes = new Hono()
     }
   )
 
+  // GET habits -> get all active habit by userid
   .get("/habits", jwtMiddleware, async (c) => {
     const jwtPayload: JwtPayloadType = c.get("jwtPayload");
 
     const habits = await db
       .select()
       .from(habitsTable)
-      .where(eq(habitsTable.user_id, jwtPayload.sub));
+      .where(
+        and(
+          eq(habitsTable.user_id, jwtPayload.sub),
+          eq(habitsTable.is_active, true)
+        )
+      );
 
     if (habits.length < 1) {
       return c.json({ status: 200, message: "Success!", data: null });
@@ -66,6 +73,7 @@ export const habitRoutes = new Hono()
     }
   })
 
+  // GET habit/:id -> get habit by id
   .get("/habit/:id{[0-9]+}", jwtMiddleware, async (c) => {
     const jwtPayload: JwtPayloadType = c.get("jwtPayload");
     const id = Number.parseInt(c.req.param("id"));
@@ -83,6 +91,8 @@ export const habitRoutes = new Hono()
       return c.json({ status: 200, message: "Success!", data: habit[0] });
     }
   })
+
+  // PUT habit/:id -> edit habit by id
   .put(
     "/habit/:id{[0-9]+}",
     jwtMiddleware,
@@ -108,7 +118,11 @@ export const habitRoutes = new Hono()
         .select()
         .from(habitsTable)
         .where(
-          and(eq(habitsTable.user_id, jwtPayload.sub), eq(habitsTable.id, id))
+          and(
+            eq(habitsTable.user_id, jwtPayload.sub),
+            eq(habitsTable.id, id),
+            eq(habitsTable.is_active, true)
+          )
         );
 
       if (existingHabit.length < 1) {
@@ -138,4 +152,52 @@ export const habitRoutes = new Hono()
         data: updatedHabit,
       });
     }
-  );
+  )
+
+  // DELETE habit/:id -> SOFT DELETE habit by id
+  .delete("/habit/:id{[0-9]+}", jwtMiddleware, async (c) => {
+    const jwtPayload: JwtPayloadType = c.get("jwtPayload");
+    const id = Number.parseInt(c.req.param("id"));
+
+    const existingHabit = await db
+      .select()
+      .from(habitsTable)
+      .where(
+        and(
+          eq(habitsTable.user_id, jwtPayload.sub),
+          eq(habitsTable.id, id),
+          eq(habitsTable.is_active, true)
+        )
+      );
+
+    if (existingHabit.length < 1) {
+      return c.json({ status: 404, message: "Habit not found!" }, 404);
+    }
+
+    const deleteHabit = await db
+      .update(habitsTable)
+      .set({
+        is_active: false,
+        updated_at: new Date(),
+      })
+      .where(
+        and(eq(habitsTable.user_id, jwtPayload.sub), eq(habitsTable.id, id))
+      )
+      .returning()
+      .then((res) => res[0]);
+
+    return c.json({
+      status: 200,
+      message: "Success delete habit!",
+      data: {
+        id: deleteHabit.id,
+        user_id: deleteHabit.user_id,
+        title: deleteHabit.title,
+        icon: deleteHabit.icon,
+        color: deleteHabit.color,
+        start_date: deleteHabit.start_date,
+        daily_goal: deleteHabit.daily_goal,
+        weekly_goal: deleteHabit.weekly_goal,
+      },
+    });
+  });
