@@ -12,12 +12,11 @@ export const habitReqSchema = z.object({
   title: z.string(),
   icon: z.string(),
   color: z.string(),
-  start_date: z.string(),
+  start_date: z.string().date(),
   daily_goal: z.number(),
   weekly_goal: z.number(),
 });
 
 export const postTrackerReqSchema = z.object({
-  count: z.number(),
-  habit_id: z.number(),
+  date: z.string().date(),
 });
