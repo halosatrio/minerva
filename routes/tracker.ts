@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { jwtMiddleware } from "../middleware/jwt";
 import { db } from "../db";
-import { trackerTable } from "../db/schema";
+import { habitsTable, trackerTable } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { postTrackerReqSchema } from "../db/actionSchema";
+import type { JwtPayloadType } from "../types/common";
 
 export const tracker = new Hono()
 
@@ -42,19 +43,24 @@ export const tracker = new Hono()
       }
     }),
     async (c) => {
+      const jwtPayload: JwtPayloadType = c.get("jwtPayload");
       const id = Number.parseInt(c.req.param("id"));
       const body = c.req.valid("json");
 
-      const trackerByHabitId = await db
+      // check if the habit is exist
+      const existingHabit = await db
         .select()
-        .from(trackerTable)
-        .where(eq(trackerTable.habit_id, id));
-
-      if (trackerByHabitId.length < 1) {
-        return c.json(
-          { status: 404, message: "Habit tracker is not found!" },
-          404
+        .from(habitsTable)
+        .where(
+          and(
+            eq(habitsTable.user_id, jwtPayload.sub),
+            eq(habitsTable.id, id),
+            eq(habitsTable.is_active, true)
+          )
         );
+
+      if (existingHabit.length < 1) {
+        return c.json({ status: 404, message: "Habit not found!" }, 404);
       }
 
       const res = await db
