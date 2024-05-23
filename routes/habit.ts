@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { db } from "../db";
 import { habitsTable } from "../db/schema";
 import { zValidator } from "@hono/zod-validator";
-import { createHabitReqSchema, updateHabitReqSchema } from "../db/actionSchema";
+import { habitReqSchema } from "../db/actionSchema";
 import type { JwtPayloadType } from "../types/common";
 import { and, eq } from "drizzle-orm";
 import { jwtMiddleware } from "../middleware/jwt";
@@ -13,7 +13,7 @@ export const habitRoutes = new Hono()
   .post(
     "/create-habit",
     jwtMiddleware,
-    zValidator("json", createHabitReqSchema, (result, c) => {
+    zValidator("json", habitReqSchema, (result, c) => {
       if (!result.success) {
         return c.json(
           {
@@ -96,7 +96,7 @@ export const habitRoutes = new Hono()
   .put(
     "/habit/:id{[0-9]+}",
     jwtMiddleware,
-    zValidator("json", updateHabitReqSchema, (result, c) => {
+    zValidator("json", habitReqSchema, (result, c) => {
       if (!result.success) {
         return c.json(
           {
