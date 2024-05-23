@@ -77,3 +77,8 @@ export const tracker = new Hono()
       return c.json({ status: 200, data: res }, 200);
     }
   );
+
+// TODO [question]:
+// should i create cron job to insert new records each day?
+// should check if date exist? if exist return 500
+// should alter table tracker count can be null
